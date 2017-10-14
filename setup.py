@@ -1,9 +1,11 @@
-# from setuptools import setup, find_packages
+from setuptools import setup
 
 
-# setup(name='scrapetools',
-#       version='0.0.1',
-#       description='Web Scraping utility',
-#       author='Beta Faccion',
-#       author_email='betafcc@gmail.com',
-#       )
+setup(name='scrapetools',
+      version='0.1.0',
+      description='Web Scraping utility',
+      author='Beta Faccion',
+      author_email='betafcc@gmail.com',
+      packages=['scrapetools'],
+      install_requires=['aiohttp', 'tqdm', 'lxml', 'cssselect']
+      )
