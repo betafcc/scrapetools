@@ -6,9 +6,8 @@ Install
 -------
 
 ```sh
-git clone https://github.com/betafcc/scrapetools.git
-cd scrapetools
-pip install .
+pip install git+https://github.com/betafcc/scrapetools
+
 ```
 
 ## Functions:
