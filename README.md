@@ -119,7 +119,7 @@ Response also is a poor version of 'Either Monad', that is, it contains a smart 
 ### download and download_sync
 ```py
 download(
-    urls           : Union[str, Iterable[str]],
+    urls           : Union[str, Iterable[str], Dict[str, str]],
     path           : str = None,
     session        : aiohttp.ClientSession = None,
     show_progress  : bool = False,
@@ -133,14 +133,14 @@ download(
 >>> loop.run_until_complete(coro)
 # will download 'Python-3.6.3.tgz' in the current directory
 
-download_sync('https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tgz', '../downloads', show_progress=True)
+>>> download_sync('https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tgz', '../downloads', show_progress=True)
 ## will download 'Python-3.6.3.tgz' in the relative path provided
 
-download_sync('https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tgz', '../downloads/python3.tgz', show_progress=True)
+>>> download_sync('https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tgz', '../downloads/python3.tgz', show_progress=True)
 ## will download as 'python3.tgz' in the relative path provided
 
 
-download_sync([
+>>> download_sync([
   'https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tgz',
   'https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tar.xz',
   'https://www.python.org/ftp/python/3.6.3/python-3.6.3-macosx10.6.pkg',
@@ -148,6 +148,19 @@ download_sync([
 ], '../downloads', show_progress=True)
 # will concurrently download all files to the provided path,
 # keeping original file name
+
+>>> download_sync({
+  'https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tgz':
+        '../downloads/python3.6.tgz',
+  'https://www.python.org/ftp/python/3.6.3/Python-3.6.3.tar.xz':
+        '../downloads/python3.6.tar.xz',
+  'https://www.python.org/ftp/python/3.6.3/python-3.6.3-macosx10.6.pkg':
+        '../downloads/python3.6.pkg',
+  'https://www.python.org/ftp/python/3.6.3/python363.chm':
+        '../downloads/python3.6.chm',
+}, show_progress=True)
+# will concurretly download all files, renaming each
+
 ```
 ### fmap
 ```py
