@@ -20,7 +20,7 @@ def scrape(data     : Union[Url, Html, html.HtmlElement] = None,
            base_url : str = None,
            flatten  : bool = True,
            ) -> Union[Matches, partial]:
-    if not data:
+    if data is None:
         return partial(scrape,
                        css=css,
                        xpath=xpath,
