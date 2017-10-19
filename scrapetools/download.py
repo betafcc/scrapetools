@@ -151,7 +151,7 @@ async def _download_all(urls              : Dict[str, str],
         if show_progress:
             pbar.update(1)
 
-    return await asyncio.gather(
+    await asyncio.gather(
         *map(bound_download_one, urls.items()),
         return_exceptions=True,
     )

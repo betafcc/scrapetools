@@ -63,6 +63,14 @@ def test_download_all(server, download_dir):
     assert set(ls) == set(urls.keys())
 
 
+def test_download_all_return(server, download_dir):
+    assert len(listdir(DOWNLOAD_DIR)) == 0
+
+    ret = run(download(urls.values(), DOWNLOAD_DIR))
+
+    assert ret is None
+
+
 def test_download_all_dict_named(server, download_dir):
     assert len(listdir(DOWNLOAD_DIR)) == 0
 
