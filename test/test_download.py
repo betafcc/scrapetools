@@ -43,43 +43,64 @@ def download_dir():
     rmtree(DOWNLOAD_DIR)
 
 
-def test_download_one(server, download_dir):
+@pytest.mark.parametrize('show_progress', [True, False])
+def test_download_one(server, download_dir, show_progress):
     assert len(listdir(DOWNLOAD_DIR)) == 0
 
-    run(download(urls['brown.txt'], DOWNLOAD_DIR))
+    run(download(urls['brown.txt'],
+                 DOWNLOAD_DIR,
+                 show_progress=show_progress))
 
     ls = listdir(DOWNLOAD_DIR)
     assert len(ls) == 1
     assert ls[0] == 'brown.txt'
 
 
-def test_download_all(server, download_dir):
+@pytest.mark.parametrize('show_progress', [True, False])
+def test_download_all(server, download_dir, show_progress):
     assert len(listdir(DOWNLOAD_DIR)) == 0
 
-    run(download(urls.values(), DOWNLOAD_DIR))
+    run(download(urls.values(),
+                 DOWNLOAD_DIR,
+                 show_progress=show_progress))
 
     ls = listdir(DOWNLOAD_DIR)
     assert len(ls) == len(urls)
     assert set(ls) == set(urls.keys())
 
 
-def test_download_all_return(server, download_dir):
+@pytest.mark.parametrize('show_progress', [True, False])
+def test_download_all_return(server, download_dir, show_progress):
     assert len(listdir(DOWNLOAD_DIR)) == 0
 
-    ret = run(download(urls.values(), DOWNLOAD_DIR))
+    ret = run(download(urls.values(),
+                       DOWNLOAD_DIR,
+                       show_progress=show_progress))
 
     assert ret is None
 
 
-def test_download_all_dict_named(server, download_dir):
+@pytest.mark.parametrize('show_progress', [True, False])
+def test_download_all_dict_named(server, download_dir, show_progress):
     assert len(listdir(DOWNLOAD_DIR)) == 0
 
     run(download({
         urls['brown.txt']   : join(DOWNLOAD_DIR, 'A.txt'),
         urls['genesis.txt'] : join(DOWNLOAD_DIR, 'B.txt'),
         urls['lorem.txt']   : join(DOWNLOAD_DIR, 'C.txt'),
-    }))
+    }, show_progress=show_progress))
 
     ls = listdir(DOWNLOAD_DIR)
     assert len(ls) == 3
     assert set(ls) == {'A.txt', 'B.txt', 'C.txt'}
+
+
+@pytest.mark.parametrize('show_progress', [True, False])
+def test_download_all_empty(server, download_dir, show_progress):
+    assert len(listdir(DOWNLOAD_DIR)) == 0
+
+    run(download([], show_progress=show_progress))
+    run(download(dict(), show_progress=show_progress))
+
+    ls = listdir(DOWNLOAD_DIR)
+    assert len(ls) == 0

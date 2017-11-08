@@ -115,13 +115,13 @@ async def _download_all(urls              : Dict[str, str],
                         ) -> None:
     arguments = locals()
 
-    if not session:
-        async with aiohttp.ClientSession() as session:
-            arguments.update(session=session)
-            return await _download_all(**arguments)
-
     if show_progress and not pbar:
         total = len(urls)
+
+        # If there is no url, leave early
+        # Both for perfomance and for a bug with tqdm
+        if total == 0:
+            return
 
         # Show at most 5 bars at the same screen by default
         # 1 for the Overall, 4 for individual
@@ -137,6 +137,11 @@ async def _download_all(urls              : Dict[str, str],
                   ) as pbar:
             arguments.update(pbar=pbar,
                              show_sub_progress=show_sub_progress)
+            return await _download_all(**arguments)
+
+    if not session:
+        async with aiohttp.ClientSession() as session:
+            arguments.update(session=session)
             return await _download_all(**arguments)
 
     semaphore = asyncio.Semaphore(max_concurrent)

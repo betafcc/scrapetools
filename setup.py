@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='scrapetools',
-      version='0.2.2',
+      version='0.2.3',
       description='Web Scraping utility',
       author='Beta Faccion',
       author_email='betafcc@gmail.com',
