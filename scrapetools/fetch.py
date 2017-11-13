@@ -4,12 +4,16 @@ from typing import (  # NOQA
     List,
 )
 import asyncio
+from functools import wraps
 
 import aiohttp  # type: ignore
 from tqdm import tqdm  # type: ignore
 
+from .response import Response
 from .util import run
-from .meta import Show
+
+
+A = TypeVar('A')
 
 
 __all__ = [
@@ -23,10 +27,6 @@ bar_options = {
     'unit_scale'    : True,
     'leave'         : True,
 }
-
-
-A = TypeVar('A')
-B = TypeVar('B')
 
 
 def fetch(urls           : Union[str, Iterable[str]],
@@ -47,20 +47,49 @@ def fetch_sync(*args    : Any,
     return run(fetch(*args, **kwargs))  # type: ignore
 
 
-async def fetch_one(url     : str,
-                    session : aiohttp.ClientSession = None,
-                    ) -> 'Response':
+def responsify(f: Callable[..., Awaitable[A]]
+               ) -> Callable[..., Awaitable['Response[A]']]:
+    @wraps(f)
+    async def _(url  : str,
+                *args: Any,
+                **kwargs: Any,
+                ) -> Response[A]:
+        try:
+            return Response(url, await f(url, *args, **kwargs))
+        except Exception as error:
+            return Response(url, error=error)
+
+    return _
+
+
+@responsify
+def fetch_one(url      : str,
+              session  : aiohttp.ClientSession  = None,
+              ) -> Awaitable['Response']:
+    return _fetch_one(url, session)
+
+
+async def _fetch_one(url      : str,
+                     session  : aiohttp.ClientSession  = None,
+                     response : aiohttp.ClientResponse = None,
+                     ) -> 'Response':
     if not session:
         async with aiohttp.ClientSession() as session:
-            return await fetch_one(url, session=session)
+            return await _fetch_one(url,
+                                    session=session,
+                                    response=response,
+                                    )
 
-    async with session.get(url) as response:
-        try:
-            assert response.status == 200
-            result = await response.text()
-            return Response(url, result)
-        except Exception as err:
-            return Response(url, error=err)
+    if not response:
+        async with session.get(url) as response:
+            return await _fetch_one(url,
+                                    session=session,
+                                    response=response,
+                                    )
+
+    assert response.status == 200, 'Response status is not 200'
+
+    return await response.text()
 
 
 def fetch_all(urls           : List[str],
@@ -105,55 +134,3 @@ async def _fetch_all(urls           : List[str],
         *map(bound_fetch_one, urls),
         return_exceptions=True,
     )
-
-
-class Response(Generic[A], Show):
-    url    : str
-    result : A
-    error  : Exception
-
-    def __init__(self,
-                 url    : str,
-                 result : A = None,
-                 error  : Exception = None,
-                 ) -> None:
-        self.url    = url
-        self.result = result
-        self.error  = error
-
-    # __iter__ used mostly for destructuring eg:
-    # url, cont, _ = resp
-    def __iter__(self) -> Iterator[Any]:
-        yield self.url
-        yield self.result
-        yield self.error
-
-    def fmap(self,
-             f : Callable[[A], B]
-             ) -> 'Union[Response[A], Response[B]]':
-        if self.error is not None:
-            return self
-        return Response(self.url, f(self.result), self.error)
-
-    def bind(self,
-             f : Callable[[A], 'Response[B]']
-             ) -> 'Union[Response[A], Response[B]]':
-        if self.error is not None:
-            return self
-        return f(self.result)
-
-    def fold(self,
-             on_result : Callable[[A], B] = None,
-             on_error  : Callable[[Exception], B] = None,
-             ) -> Union[A, B, Exception]:
-        if self.error is not None:
-            if on_error is None:
-                return self.error
-            return on_error(self.error)
-
-        if self.result is not None:
-            if on_result is None:
-                return self.result
-            return on_result(self.result)
-
-        raise TypeError('Either result or error must not be None')

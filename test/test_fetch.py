@@ -27,6 +27,11 @@ def test_fetch_one(server):
     assert resp is None
     assert isinstance(err, Exception)
 
+    url, resp, err = run(fetch('malformedurl'))
+
+    assert resp is None
+    assert isinstance(err, Exception)
+
 
 def test_fetch_all(server):
     index = 'http://localhost:5000'
