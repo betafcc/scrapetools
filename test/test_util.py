@@ -1,7 +1,10 @@
 import pytest
 
 import os
-from scrapetools.util import run, url_basename, sensible_download_path
+import shutil
+from scrapetools.util import (
+    run, url_basename, sensible_download_path, mkdirdeep
+)
 
 
 def test_run():
@@ -32,3 +35,27 @@ def test_url_basename(url, expected):
 ])
 def test_sensible_download_path(url, path, expected):
     assert sensible_download_path(url, path) == expected
+
+
+def test_mkdirdeep():
+    base_path = os.path.join(
+        os.path.dirname(__file__),
+        'mkdirdeep_test'
+    )
+    deep_path = os.path.join(
+        base_path,
+        'a', 'b', 'c', 'd'
+    )
+
+    assert not os.path.isdir(base_path)
+
+    try:
+        mkdirdeep(deep_path)
+        assert os.path.isdir(deep_path)
+    except AssertionError as e:
+        raise e
+    finally:
+        try:
+            shutil.rmtree(base_path)
+        except FileNotFoundError:
+            pass
