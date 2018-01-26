@@ -52,3 +52,5 @@ def mkdirdeep(path: str) -> None:
             os.mkdir(partial_path)
         except FileExistsError:
             pass
+        except IsADirectoryError:
+            pass
