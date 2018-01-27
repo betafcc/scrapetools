@@ -2,6 +2,9 @@ from typing import (
     Coroutine, Generator, Iterator, Callable,
     TypeVar, Any,
 )
+from asyncio import Task
+
+import asyncio
 from functools import partial, singledispatch
 
 
@@ -10,7 +13,7 @@ B = TypeVar('B')
 
 
 def compose(f : Callable[[A], B],
-            g : Callable[..., A] = None
+            g : Callable[..., A] = None,
             ) -> Callable[..., B]:
     if not g:
         return partial(compose, f)
@@ -18,7 +21,7 @@ def compose(f : Callable[[A], B],
 
 
 def fmap(f   : Callable,
-         obj : Any = None
+         obj : Any = None,
          ) -> Any:
     if obj is None:
         return partial(fmap, f)
@@ -45,6 +48,13 @@ def _(obj, f):
     async def wrapped():
         return f(await obj)
     return wrapped()
+
+
+@_fmap.register(Task)  # type: ignore
+def _(obj, f):
+    async def wrapped():
+        return f(await obj)
+    return asyncio.ensure_future(wrapped())
 
 
 @_fmap.register(Generator)  # type: ignore

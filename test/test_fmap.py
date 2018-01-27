@@ -1,3 +1,5 @@
+import asyncio
+
 from scrapetools.fmap import fmap
 from scrapetools.util import run
 
@@ -19,3 +21,7 @@ def test_fmap():
     async def foo():
         return 10
     assert run(fmap(lambda x: x * x, foo())) == 100
+
+    async def foo():
+        return 10
+    assert run(fmap(lambda x: x * x, asyncio.ensure_future(foo()))) == 100
